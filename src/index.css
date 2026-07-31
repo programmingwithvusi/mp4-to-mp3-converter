@@ -1,0 +1,53 @@
+:root {
+  --bg: #0e0f12;
+  --panel-2: #17181c;
+  --line: #24262b;
+  --line-strong: #33353b;
+  --fg: #ededf0;
+  --fg-dim: #a4a6ad;
+  --fg-faint: #6c6e75;
+  --amber: #ff8a1f;
+  --green: #3ddc84;
+  --red: #ff5a4d;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(255, 138, 31, 0.05), transparent 60%),
+    repeating-linear-gradient(180deg, #101114 0px, #101114 2px, #0e0f12 2px, #0e0f12 4px),
+    var(--bg);
+  color: var(--fg);
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+}
+
+::selection {
+  background: var(--amber);
+  color: #1a1204;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 4px;
+}
