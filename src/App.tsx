@@ -221,6 +221,19 @@ export default function App() {
     eligibleForConversion.slice(quota.remaining).map((j) => j.id),
   );
 
+  const failedCount = jobs.filter(
+    (j) => j.status === 'error' && !j.invalid,
+  ).length;
+
+  const retryFailed = () =>
+    setJobs((prev) =>
+      prev.map((j) =>
+        j.status === 'error' && !j.invalid
+          ? { ...j, status: 'queued', progress: 0, error: undefined }
+          : j,
+      ),
+    );
+
   const clearCompleted = () =>
     setJobs((prev) => prev.filter((j) => j.status !== 'done'));
   return (
@@ -325,8 +338,8 @@ export default function App() {
               ))}
             </div>
           </div>
-
           <button
+            data-testid="limit-message"
             type="button"
             className="btn btn--convert"
             disabled={
@@ -353,6 +366,15 @@ export default function App() {
             <div className="queue__header">
               <span>Queue ({jobs.length})</span>
               <div className="queue__actions">
+                {failedCount > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn--ghost btn--small"
+                    onClick={retryFailed}
+                  >
+                    Retry Failed ({failedCount})
+                  </button>
+                )}
                 {doneCount > 0 && (
                   <>
                     <button
