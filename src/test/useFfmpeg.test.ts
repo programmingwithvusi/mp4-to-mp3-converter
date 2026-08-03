@@ -73,6 +73,7 @@ describe('useFfmpeg', () => {
         const registerMp3Encoder = vi.fn()
         vi.doMock('@mediabunny/mp3-encoder', () => ({ registerMp3Encoder }))
 
+        console.log('Before loadState:', mediabunny.canEncodeAudio)
         const { result } = renderHook(() => useFfmpeg())
         await result.current.load()
 
