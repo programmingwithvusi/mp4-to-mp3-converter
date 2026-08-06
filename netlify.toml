@@ -3,7 +3,7 @@
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION = "24"
 
 # SPA fallback — client-side routing (if added later) won't 404 on refresh.
 [[redirects]]
