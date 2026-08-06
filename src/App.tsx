@@ -343,7 +343,7 @@ export default function App() {
                 ? 'Daily limit reached'
                 : 'Convert to MP3'}
           </button>
-          <span className="quota-badge">
+          <span className="quota-badge" aria-live="polite">
             {quota.used}/{quota.limit} today
           </span>
         </section>
@@ -405,7 +405,20 @@ export default function App() {
                           : ''}
                       </span>
                     </div>
-                    <div className="track__meter">
+                    {/*<div className="track__meter">
+                      <div
+                        className="track__meter-fill"
+                        style={{ width: `${job.progress}%` }}
+                      />
+                    </div>*/}
+                    <div
+                      className="track__meter"
+                      role="progressbar"
+                      aria-valuenow={job.progress}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-label={`${job.file.name} conversion progress`}
+                    >
                       <div
                         className="track__meter-fill"
                         style={{ width: `${job.progress}%` }}
@@ -421,7 +434,9 @@ export default function App() {
                           Save
                         </button>
                       ) : (
-                        <span className="track__status">{job.status}</span>
+                        <span className="track__status" aria-live="polite">
+                          {job.status}
+                        </span>
                       )}
                       <button
                         type="button"
@@ -440,8 +455,11 @@ export default function App() {
           </section>
         )}
       </main>
-
-      <footer className={`statusbar statusbar--${statusTone}`}>
+      <footer
+        className={`statusbar statusbar--${statusTone}`}
+        role="status"
+        aria-live="polite"
+      >
         {statusText}
       </footer>
     </div>
