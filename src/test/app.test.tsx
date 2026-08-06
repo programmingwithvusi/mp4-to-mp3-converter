@@ -1,11 +1,19 @@
 // App.test.tsx
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {
+  render,
+  screen,
+  act,
+  fireEvent,
+  waitFor,
+} from '@testing-library/react';
+
 import App from '../App';
 import { IDBFactory } from 'fake-indexeddb';
+
 const mockConvert = vi.fn();
 
-vi.mock('../useFfmpeg', () => ({
+vi.mock('../hooks/useFfmpeg', () => ({
   useFfmpeg: () => ({
     load: vi.fn(),
     convert: mockConvert,
@@ -21,6 +29,7 @@ function makeFile(name: string, sizeBytes = 1024): File {
 }
 
 beforeEach(() => {
+  vi.stubEnv('VITE_DAILY_LIMIT', '5');
   localStorage.clear();
   (globalThis as unknown as { indexedDB: IDBFactory }).indexedDB =
     new IDBFactory();
@@ -28,6 +37,9 @@ beforeEach(() => {
   mockConvert.mockResolvedValue(new Blob(['fake mp3'], { type: 'audio/mpeg' }));
 });
 
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 describe('App', () => {
   it('adds a dropped file to the queue', async () => {
     render(<App />);
@@ -55,15 +67,22 @@ describe('App', () => {
     const dropzone = screen
       .getByText(/drag video files here/i)
       .closest('section')!;
+
     fireEvent.drop(dropzone, {
       dataTransfer: { files: [makeFile('clip.mp4')] },
     });
-    fireEvent.click(
-      await screen.findByRole('button', { name: /convert to mp3/i }),
-    );
+
+    await act(async () => {
+      fireEvent.click(
+        await screen.findByRole('button', { name: /convert to mp3/i }),
+      );
+    });
+
     await waitFor(() => expect(mockConvert).toHaveBeenCalledTimes(1));
+
     expect(await screen.findByText(/1\/5 today/i)).toBeInTheDocument();
   });
+
   it('blocks conversion once the daily quota is exhausted', async () => {
     render(<App />);
     const dropzone = screen
@@ -71,12 +90,21 @@ describe('App', () => {
       .closest('section')!;
     // Queue 6 files, one over the limit of 5
     const files = Array.from({ length: 6 }, (_, i) => makeFile(`clip${i}.mp4`));
-    fireEvent.drop(dropzone, { dataTransfer: { files } });
-    fireEvent.click(
-      await screen.findByRole('button', { name: /convert to mp3/i }),
-    );
+
+    await act(async () => {
+      fireEvent.drop(dropzone, { dataTransfer: { files } });
+    });
+    await act(async () => {
+      fireEvent.click(
+        await screen.findByRole('button', { name: /convert to mp3/i }),
+      );
+    });
+
     await waitFor(() => expect(mockConvert).toHaveBeenCalledTimes(5));
-    expect(await screen.findByTestId(/limit-message/i)).toBeInTheDocument();
+
+    expect(
+      await act(() => screen.findByTestId(/limit-message/i)),
+    ).toBeInTheDocument();
   });
 
   it('retries only failed, non-invalid jobs', async () => {
@@ -90,16 +118,39 @@ describe('App', () => {
     fireEvent.drop(dropzone, {
       dataTransfer: { files: [makeFile('clip.mp4')] },
     });
-    fireEvent.click(
-      await screen.findByRole('button', { name: /convert to mp3/i }),
-    );
-    await screen.findByText(/boom/i);
-    fireEvent.click(
-      await screen.findByRole('button', { name: /retry failed/i }),
-    );
-    fireEvent.click(
-      await screen.findByRole('button', { name: /convert to mp3/i }),
-    );
+    await act(async () => {
+      fireEvent.click(
+        await screen.findByRole('button', { name: /convert to mp3/i }),
+      );
+    });
+    await act(() => screen.findByText(/boom/i));
+    await act(async () => {
+      fireEvent.click(
+        await screen.findByRole('button', { name: /retry failed/i }),
+      );
+    });
+    await act(async () => {
+      fireEvent.click(
+        await screen.findByRole('button', { name: /convert to mp3/i }),
+      );
+    });
     await waitFor(() => expect(mockConvert).toHaveBeenCalledTimes(2));
+  });
+
+  it('renders progress bars with correct ARIA attributes', async () => {
+    render(<App />);
+    const dropzone = screen
+      .getByText(/drag video files here/i)
+      .closest('section')!;
+    fireEvent.drop(dropzone, {
+      dataTransfer: { files: [makeFile('clip.mp4')] },
+    });
+
+    const progressbar = await screen.findByRole('progressbar', {
+      name: /clip\.mp4 conversion progress/i,
+    });
+    expect(progressbar).toHaveAttribute('aria-valuenow', '0');
+    expect(progressbar).toHaveAttribute('aria-valuemin', '0');
+    expect(progressbar).toHaveAttribute('aria-valuemax', '100');
   });
 });

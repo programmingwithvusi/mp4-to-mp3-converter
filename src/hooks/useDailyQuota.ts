@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-const DAILY_LIMIT = import.meta.env.DEV ? 5 : 5
+function resolveDailyLimit(): number {
+    const envLimit = Number(import.meta.env.VITE_DAILY_LIMIT)
+    if (!Number.isNaN(envLimit) && envLimit > 0) return envLimit
+    return import.meta.env.DEV ? 1000 : 5
+}
+
 const STORAGE_PREFIX = '7331676E616C2D636F6E766572746572:usage:'
 const IDB_NAME = '7331676E616C2D636F6E766572746572-ration'
 const IDB_STORE = 'usage'
@@ -81,7 +86,7 @@ async function writeIdbCount(count: number): Promise<void> {
 
 // --- Hook ---
 
-export function useDailyQuota(limit = DAILY_LIMIT) {
+export function useDailyQuota(limit = resolveDailyLimit()) {
     // Synchronous initial value from localStorage — IndexedDB reconciles a beat later.
     const countRef = useRef(readLocalStorageCount())
     const [used, setUsed] = useState(countRef.current)

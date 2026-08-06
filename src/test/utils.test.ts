@@ -1,6 +1,6 @@
 // utils.test.ts
 import { describe, it, expect } from 'vitest'
-import { isAcceptedFile, formatBytes, mpThreeNameFor } from '../utils'
+import { isAcceptedFile, formatBytes, mpThreeNameFor } from '../utils/utils'
 
 function makeFile(name: string): File {
     return new File(['x'], name)

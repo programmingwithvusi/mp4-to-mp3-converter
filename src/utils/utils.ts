@@ -1,4 +1,4 @@
-import { ACCEPTED_EXTENSIONS, MAX_FILE_SIZE_BYTES } from './types'
+import { ACCEPTED_EXTENSIONS, MAX_FILE_SIZE_BYTES } from '../types/types'
 
 export function isAcceptedFile(file: File): boolean {
     const name = file.name.toLowerCase()

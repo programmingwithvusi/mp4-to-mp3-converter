@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
-import { useDailyQuota } from '../useDailyQuota'
+import { useDailyQuota } from '../hooks/useDailyQuota'
 
 // fake-indexeddb provides an in-memory IndexedDB for jsdom, which has none
 // built in. Re-assigning a fresh instance before each test gives full
